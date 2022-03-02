@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+  <link rel="icon"
+    href="https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/robot_1f916.png">
+  <title>Simple Agent</title>
+</head>
+
+<body>
+  <div class="container p-3">
+    <a href="index.html">back</a>
+    <br>
+    lista de jornadas
+    <div class="d-flex flex-wrap" id="projects-container">
+      jornadas: <select class="form-select" aria-label="Default select example" id="projects-list"></select>
+      mapas: <select class="form-select" aria-label="Default select example" id="maps-list"></select>
+      pontos de divergência: <select class="form-select" aria-label="Default select example"
+        id="divpoints-list"></select>
+    </div>
+    <br>
+    <div class="d-flex flex-row-reverse">
+      <button type="button" class="btn btn-sm" id="periodic-check-button">inicializando...</button>
+    </div>
+    <div style="margin: 10px">
+      <p id="periodic-check-status"></p>
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0"
+    crossorigin="anonymous"></script>
+
+  <script type="module" src="./js/main.js"></script>
+  <script src="https://d3js.org/d3.v6.min.js"></script>
+  <script type="module" src="./js/strateegia-api.js"></script>
+  <script type="module" src="./js/project-list.js"></script>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/jsonpath-plus@6.0.1/src/jsonpath.js"></script>
+  <script type="module" src="./js/metrics.js"></script>
+  <script type="module" src="./js/utils/d3functions.js"></script>
+  <script src="./js/utils/jsonpath-browser-umd.cjs"></script>
+  <script src="./js/utils/utils.js"></script>
+
+</body>
+
+</html>
