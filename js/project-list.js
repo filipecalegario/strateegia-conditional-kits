@@ -1,4 +1,4 @@
-import { getAllProjects, getProjectById, getAllDivergencePointsByMapId, getCommentsGroupedByQuestionReport } from "./strateegia-api.js";
+import { getAllProjects, getProjectById, getAllDivergencePointsByMapId, getCommentsGroupedByQuestionReport, createDivergencePoint } from "./strateegia-api.js";
 
 let users = [];
 const accessToken = localStorage.getItem("strateegiaAccessToken");
@@ -111,7 +111,7 @@ async function setSelectedDivPoint(divPointId) {
     // intervalCheck = setInterval(() => {periodicCheck(divPointId)}, 5000);
 }
 
-function initializePeriodicCheckButtonControls() {
+async function initializePeriodicCheckButtonControls() {
     let button = d3.select("#periodic-check-button");
     button.text("iniciar checagem periódica");
     button.classed("btn-outline-success", true);
@@ -121,6 +121,14 @@ function initializePeriodicCheckButtonControls() {
         } else {
             stopPeriodicCheck();
         }
+    });
+    const testButton = d3.select("#create-divPoint");
+    testButton.on("click", () => {
+        const mapId = localStorage.getItem("selectedMap");
+        const toolId = "621f8126d72e0d1bd26ab8e9";
+        const col = 9;
+        const row = 3;
+        createDivergencePoint(accessToken, mapId, toolId, col, row);
     });
 }
 

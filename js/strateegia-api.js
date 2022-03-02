@@ -92,9 +92,9 @@ export async function getDivergencePointById(token, contentId) {
     return data;
 }
 
-export async function getParentComments(token, contentId, questionId) {
+export async function getParentComments(token, divPointId, questionId) {
 
-    const response = await fetch(`${API_URL_PROJECTS}divergence-point/${contentId}/question/${questionId}/comment?size=5000`, {
+    const response = await fetch(`${API_URL_PROJECTS}divergence-point/${divPointId}/question/${questionId}/comment?size=5000`, {
         method: 'get',
         headers: {
             'Content-Type': 'application/json',
@@ -137,17 +137,56 @@ export async function getUser(token) {
     return data;
 }
 
-// async function addKitToUser(token:string, kit: any) {
-//     const JSONkit = JSON.stringify(kit);
+export async function createParentComment(token, divPointId, questionId, comment) {
+    const payload = { "text": comment }
+    const JSONkit = JSON.stringify(payload);
 
-//     const response = await fetch(`${API_URL}`, {
-//         method: 'post',
-//         headers:{
-//             'Content-Type': 'application/json', 
-//             'Authorization': `Bearer ${token}`
-//         },
-//         body: `${JSONkit}`
-//     });
+    const response = await fetch(`${API_URL_PROJECTS}divergence-point/${divPointId}/question/${questionId}/comment`, {
+        method: 'post',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: `${JSONkit}`
+    });
 
-//     return await response.json();
-// }
+    return await response.json();
+}
+
+export async function createReplyComment(token, parentCommentId, comment) {
+    const payload = { "text": comment }
+    const JSONkit = JSON.stringify(payload);
+
+    const response = await fetch(`${API_URL_PROJECTS}question/comment/${parentCommentId}/reply`, {
+        method: 'post',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: `${JSONkit}`
+    });
+
+    return await response.json();
+}
+
+export async function createDivergencePoint(token, mapId, toolId, col, row) {
+    const payload = {
+        "position": {
+            "col": col,
+            "row": row
+        },
+        "tool_id": toolId
+    }
+    const JSONkit = JSON.stringify(payload);
+
+    const response = await fetch(`${API_URL_PROJECTS}map/${mapId}/divergence-point`, {
+        method: 'post',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: `${JSONkit}`
+    });
+
+    return await response.json();
+}
