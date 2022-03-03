@@ -1,35 +1,57 @@
-import { getAllProjects, getProjectById, getAllDivergencePointsByMapId, getCommentsGroupedByQuestionReport, createDivergencePoint } from "./strateegia-api.js";
+import { getAllProjects, getProjectById, getAllDivergencePointsByMapId, getCommentsGroupedByQuestionReport, createParentComment, createReplyComment, getUser, getSummaryProjectsByUser, getCommentEngagementByContent, createDivergencePoint } from "./strateegia-api.js";
 
 let users = [];
 const accessToken = localStorage.getItem("strateegiaAccessToken");
 let intervalCheck = "inactive";
+const CHECK_INTERVAL = 1000;
+let isDivPointsAlreadyAdded = false;
+let isCondicaoDeDisparo = false;
 
 export async function initializeProjectList() {
-    const labs = await getAllProjects(accessToken)
-    console.log("getAllProjects()");
-    console.log(labs);
-    let listProjects = [];
-    for (let i = 0; i < labs.length; i++) {
-        let currentLab = labs[i];
-        if (currentLab.lab.name == null) {
-            currentLab.lab.name = "Personal";
+    // const labs = await getAllProjects(accessToken);
+    // console.log("getAllProjects()");
+    // console.log(labs);
+    // const user = await getUser(accessToken);
+    // localStorage.setItem("userId", user.id);
+    // let listProjects = [];
+    // for (let i = 0; i < labs.length; i++) {
+    //     let currentLab = labs[i];
+    //     if (currentLab.lab.name == null) {
+    //         currentLab.lab.name = "Personal";
+    //     }
+    //     for (let index = 0; index < currentLab.projects.length; index++) {
+    //         const project = currentLab.projects[index];
+    //         const newProject = {
+    //             "id": project.id,
+    //             "title": project.title,
+    //             "lab_id": currentLab.lab.id,
+    //             "lab_title": currentLab.lab.name
+    //         };
+    //         const projectMoreInfo = await getProjectById(accessToken, project.id);
+    //         const foundUser = projectMoreInfo.users.find(_user => _user.id == user.id);
+    //         if (foundUser !== undefined) {
+    //             if (foundUser.project_roles.includes("ADMIN") || foundUser.project_roles.includes("MENTOR")) {
+    //                 listProjects.push(newProject);
+    //             }
+    //         }
+    //     }
+    // }
+
+    const projectsSummary = await getSummaryProjectsByUser(accessToken);
+    console.log("getSummaryProjectsByUser()");
+    console.log(projectsSummary);
+    const listProjects = projectsSummary.content.map(project => {
+        if (project.lab.name == null) {
+            project.lab.name = "Personal";
         }
-        for (let j = 0; j < currentLab.projects.length; j++) {
-            const project = currentLab.projects[j];
-            const newProject = {
-                "id": project.id,
-                "title": project.title,
-                "lab_id": currentLab.lab.id,
-                "lab_title": currentLab.lab.name
-            };
-            listProjects.push(newProject);
-        }
-    }
+        return { id: project.id, title: project.title, labId: project.lab.id, labTitle: project.lab.name, roles: project.my_member_info.project_roles }
+    }).filter(project => project.roles.includes("ADMIN") || project.roles.includes("MENTOR"));
+    console.log(listProjects);
 
     let options = d3.select("#projects-list");
     options.selectAll('option').remove();
     listProjects.forEach(function (project) {
-        options.append('option').attr('value', project.id).text(`${project.lab_title} -> ${project.title}`);
+        options.append('option').attr('value', project.id).text(`${project.labTitle} -> ${project.title}`);
     });
     options.on("change", () => {
         let selectedProject = d3.select("#projects-list").property('value');
@@ -37,12 +59,14 @@ export async function initializeProjectList() {
         console.log(selectedProject);
         updateMapList(selectedProject);
         stopPeriodicCheck();
+        isDivPointsAlreadyAdded = false;
     });
 
     localStorage.setItem("selectedProject", listProjects[0].id);
     updateMapList(listProjects[0].id);
 
     initializePeriodicCheckButtonControls();
+    initializeQuestionsList();
 }
 
 async function updateMapList(selectedProject) {
@@ -67,6 +91,7 @@ async function updateMapList(selectedProject) {
         console.log(selectedMap);
         updateDivPointList(selectedMap);
         stopPeriodicCheck();
+        isDivPointsAlreadyAdded = false;
     });
 
     const mapId = project.maps[0].id;
@@ -88,6 +113,7 @@ async function updateDivPointList(selectedMap) {
                 let selectedDivPoint = d3.select("#divpoints-list").property("value");
                 setSelectedDivPoint(selectedDivPoint);
                 stopPeriodicCheck();
+                isDivPointsAlreadyAdded = false;
             });
 
             let initialSelectedDivPoint = map.content[0].id;
@@ -122,21 +148,36 @@ async function initializePeriodicCheckButtonControls() {
             stopPeriodicCheck();
         }
     });
-    const testButton = d3.select("#create-divPoint");
-    testButton.on("click", () => {
-        const mapId = localStorage.getItem("selectedMap");
-        const toolId = "621f8126d72e0d1bd26ab8e9";
-        const col = 9;
-        const row = 3;
-        createDivergencePoint(accessToken, mapId, toolId, col, row);
+    let intervals = d3.select("#intervals");
+    const intervalsOptions = [{ value: "1000", text: "1 segundo" }, { value: "5000", text: "5 segundos" }, { value: "10000", text: "10 segundos" }, { value: "15000", text: "15 segundos" }, { value: "30000", text: "30 segundos" }, { value: "60000", text: "1 minuto" }, { value: "120000", text: "2 minutos" }, { value: "300000", text: "5 minutos" }, { value: "600000", text: "10 minutos" }, { value: "1800000", text: "30 minutos" }, { value: "3600000", text: "1 hora" }];
+    intervalsOptions.forEach(function (interval) {
+        intervals.append("option").attr("value", interval.value).text(interval.text).classed("dropdown-item", true);
     });
+}
+
+function initializeQuestionsList() {
+    let comments = [
+        "você poderia detalhar um pouco mais sua resposta?",
+        "daria para explicar um pouco mais?",
+        "se der, fala mais um pouco sobre sua resposta?",
+        "tu poderia dar mais detalhes sobre tua resposta?",
+        "humm, fiquei com algumas dúvidas sobre sua resposta, poderia dar mais detalhes?",
+        "dá um pouquinho mais de detalhes aqui, por favor.",
+    ];
+    const questions = d3.select("#questions-list");
+    questions.text(comments.join("\n"));
+    // questions.on("change", () => {
+    //     const updatedQuestions = d3.select("#questions-list");
+    //     console.log(updatedQuestions.node().value)
+    // });
 }
 
 function startPeriodicCheck() {
     let button = d3.select("#periodic-check-button");
     let selectedDivPoint = localStorage.getItem("selectedDivPoint");
     if (selectedDivPoint !== null && selectedDivPoint !== "null") {
-        intervalCheck = setInterval(() => { periodicCheck(selectedDivPoint) }, 500);
+        const chosenInterval = d3.select("#intervals").property("value");
+        intervalCheck = setInterval(() => { periodicCheck(selectedDivPoint) }, chosenInterval);
 
         button.text("parar checagem periódica");
         button.classed("btn-outline-success", false);
@@ -158,6 +199,9 @@ function stopPeriodicCheck() {
 async function periodicCheck(divPointId) {
     console.log(`periodicCheck(): ${divPointId}`);
     statusUpdate();
+    // checkParentComments(divPointId);
+    const projectId = localStorage.getItem("selectedProject");
+    checkCommentEngagementByContent(projectId, divPointId);
 }
 
 function statusUpdate() {
@@ -165,5 +209,61 @@ function statusUpdate() {
     statusOutput.classed("alert alert-secondary", true);
     let currentTime = new Date();
     let currentTimeFormatted = d3.timeFormat("%d/%m/%Y %H:%M:%S")(currentTime);
-    statusOutput.text("última checagem: " + currentTimeFormatted);
+    const parentCommentsCount = localStorage.getItem("parentCommentsCount");
+    const potentialCount = localStorage.getItem("potentialCount");
+    statusOutput.text(`última checagem: ${currentTimeFormatted}`);
+    statusOutput.append("p").text(`contagem de respostas: ${parentCommentsCount}`);
+    statusOutput.append("p").text(`limite de disparo: 12`);
+    statusOutput.append("p").text(`disparou? ${isCondicaoDeDisparo}`);
+}
+
+async function checkCommentEngagementByContent(projectId, divPointId) {
+    const listEngagementByDivPoint = await getCommentEngagementByContent(accessToken, projectId);
+    const engagementDivPoint = listEngagementByDivPoint.filter(divPoint => divPoint.id === divPointId)[0];
+    if (engagementDivPoint !== undefined) {
+        console.log(engagementDivPoint);
+        const parentCommentsCount = engagementDivPoint.parent_comments_count;
+        const questionCount = engagementDivPoint.question_count;
+        const potential = engagementDivPoint.potential;
+        const peopleActiveCount = engagementDivPoint.people_active_count;
+        localStorage.setItem("potentialCount", potential);
+        localStorage.setItem("parentCommentsCount", parentCommentsCount);
+        const mapId = localStorage.getItem("selectedMap");
+        if (parentCommentsCount >= 12) {
+            if (!isDivPointsAlreadyAdded) {
+                isDivPointsAlreadyAdded = true;
+                isCondicaoDeDisparo = true;
+                //pitch solução
+                await createDivergencePoint(accessToken, mapId, "6193f5537619e5192db196f3", 7, 5)
+                //pitch mercado
+                await createDivergencePoint(accessToken, mapId, "6193f4be7619e5192db196f2", 8, 5)
+            }
+        } else {
+            isCondicaoDeDisparo = false;
+        }
+    }
+}
+
+async function checkParentComments(divPointId) {
+    const questionReport = await getCommentsGroupedByQuestionReport(accessToken, divPointId);
+
+    questionReport.forEach(question => {
+        const questionId = question.id;
+        if (question.comments.length > 0) {
+            question.comments.forEach(comment => {
+                if (comment.reply_count === 0) {
+                    console.log(`${comment.id}: ninguém fez comentários para essa resposta`);
+                    createReplyComment(accessToken, comment.id, randomComment());
+                }
+            });
+        }
+    });
+    console.log(questionReport);
+}
+
+function randomComment() {
+    let comments = d3.select("#questions-list").node().value.split("\n");
+    console.log(comments);
+    let randomIndex = Math.floor(Math.random() * comments.length);
+    return comments[randomIndex];
 }
