@@ -267,9 +267,9 @@ function statusUpdate() {
     const parentCommentsCount = localStorage.getItem("parentCommentsCount");
     const potentialCount = localStorage.getItem("potentialCount");
     statusOutput.text(`última checagem: ${currentTimeFormatted}`);
-    statusOutput.append("p").text(`contagem de respostas: ${parentCommentsCount}`);
-    statusOutput.append("p").text(`limite de disparo: 12`);
-    statusOutput.append("p").text(`disparou? ${isCondicaoDeDisparo}`);
+    // statusOutput.append("p").text(`contagem de respostas: ${parentCommentsCount}`);
+    // statusOutput.append("p").text(`limite de disparo: 12`);
+    // statusOutput.append("p").text(`disparou? ${isCondicaoDeDisparo}`);
 }
 
 // async function checkCommentEngagementByContent(projectId, divPointId) {
@@ -334,7 +334,19 @@ async function checkCommentEngagementByContent(projectId, divPointId) {
         } else {
             console.log("Condição de disparo não definida");
         }
-        d3.select("#resultado-condicao").text(isCondicaoDeDisparo ? "verdadeiro" : "falso");
+
+        const resultadoCondicao = d3.select("#resultado-condicao");
+        if (isCondicaoDeDisparo) {
+            resultadoCondicao.text("verdadeiro");
+            resultadoCondicao.classed("btn-success", true);
+            resultadoCondicao.classed("btn-danger", false);
+            resultadoCondicao.classed("btn-outline-secondary", false);
+        } else {
+            resultadoCondicao.text("falso");
+            resultadoCondicao.classed("btn-success", false);
+            resultadoCondicao.classed("btn-danger", true);
+            resultadoCondicao.classed("btn-outline-secondary", false);
+        }
 
         if (isCondicaoDeDisparo) {
             if (comparisonParameters.action === "alert") {
