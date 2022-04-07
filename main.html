@@ -10,8 +10,8 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
   <link rel="icon"
-    href="https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/282/robot_1f916.png">
-  <title>Simple Agent</title>
+    href="https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/repeat-button_1f501.png">
+  <title>Jornada Condicional</title>
 </head>
 
 <body>
@@ -30,6 +30,23 @@
       <div class="row input-group mb-2">
         <span class="col-3 input-group-text">pontos de divergência</span>
         <select class="col-10 form-select" aria-label="Default select example" id="divpoints-list"></select>
+      </div>
+      <div class="row input-group mb-2">
+        <span class="col-3 input-group-text">variável observada</span>
+        <select class="col-10 form-select" aria-label="Default select example" id="variaveis"></select>
+        <span class="col-3 input-group-text" id="valor-variavel"></span>
+      </div>
+      <div class="row input-group mb-2">
+        <span class="col-2 input-group-text">condição</span>
+        <select class="col-2 form-select" aria-label="Default select example" id="condicoes"></select>
+        <span class="col-2 input-group-text">valor de comparação</span>
+        <input class="col-2 form-control" type="text" id="valor-comparacao" aria-describedby="basic-addon3">
+        <span class="col-2 input-group-text">resultado</span>
+        <span class="col-2 input-group-text" id="resultado-condicao"></span>
+      </div>
+      <div class="row input-group mb-2">
+        <span class="col-3 input-group-text">ação</span>
+        <select class="col-10 form-select" aria-label="Default select example" id="acoes"></select>
       </div>
       <!-- <div class="row input-group mb-2">
         <textarea class="form-control" id="questions-list" rows="10"></textarea>
