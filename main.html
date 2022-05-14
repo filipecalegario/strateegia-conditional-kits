@@ -40,7 +40,7 @@
         <span class="col-2 input-group-text">condição</span>
         <select class="col-2 form-select" aria-label="Default select example" id="condicoes"></select>
         <span class="col-2 input-group-text">valor de comparação</span>
-        <input class="col-2 form-control" type="text" id="valor-comparacao" aria-describedby="basic-addon3">
+        <input class="col-2 form-control" type="number" id="valor-comparacao" aria-describedby="basic-addon3">
         <span class="col-2 input-group-text">resultado</span>
         <span class="col-2 btn btn-outline-secondary" id="resultado-condicao"></span>
       </div>
@@ -48,9 +48,28 @@
         <span class="col-3 input-group-text">ação</span>
         <select class="col-10 form-select" aria-label="Default select example" id="acoes"></select>
       </div>
-      <!-- <div class="row input-group mb-2">
-        <textarea class="form-control" id="questions-list" rows="10"></textarea>
-      </div> -->
+      <div id="comments-list-container">
+        <div class="row input-group mb-2">
+          <textarea class="form-control" id="comments-list" rows="10"></textarea>
+        </div>
+      </div>
+      <div id="add-kit">
+        <div class="row input-group mb-2">
+          <textarea class="form-control" id="add-kit-text" rows="10"></textarea>
+        </div>
+        <div class="row input-group mb-2">
+          <span class="col-2 input-group-text">posição X</span>
+          <input class="col-2 form-control" type="number" id="add-kit-position-x" aria-describedby="basic-addon3">
+          <span class="col-2 input-group-text">posição Y</span>
+          <input class="col-2 form-control" type="number" id="add-kit-position-y" aria-describedby="basic-addon3">
+        </div>
+      </div>
+      <div id="alert-message">
+        <div class="row input-group mb-2">
+          <span class="col-2 input-group-text">mensagem do alerta</span>
+          <input class="col-8 form-control" type="text" id="alert-text" aria-describedby="basic-addon3">
+        </div>
+      </div>
       <div class="row input-group mb-3">
         <select class="col form-select" id="intervals"></select>
         <button type="button" class="col btn" id="periodic-check-button">inicializando...</button>

@@ -213,10 +213,14 @@ function initializeOptions() {
     });
     //=======================
     let actions = [
+        { action: "-----", value: "none" },
         { action: "fazer comentário a partir da lista abaixo", value: "comment" },
-        { action: "adicionar o kit abaixo", value: "addKit" },
+        { action: "adicionar o kit abaixo na posição X, Y", value: "addKit" },
         { action: "lançar um alerta na tela", value: "alert" },
     ];
+    d3.select("#comments-list-container").style("display", "none");
+    d3.select("#add-kit").style("display", "none");
+    d3.select("#alert-message").style("display", "none");
     const acoes = d3.select("#acoes");
     actions.forEach(function (action) {
         acoes.append("option").attr("value", action.value).text(action.action).classed("dropdown-item", true);
@@ -224,6 +228,23 @@ function initializeOptions() {
     acoes.on("change", () => {
         comparisonParameters.action = d3.select("#acoes").property("value");
         console.log(comparisonParameters);
+        if (comparisonParameters.action === "comment") {
+            d3.select("#comments-list-container").style("display", "block");
+            d3.select("#add-kit").style("display", "none");
+            d3.select("#alert-message").style("display", "none");
+        } else if (comparisonParameters.action === "addKit") {
+            d3.select("#comments-list-container").style("display", "none");
+            d3.select("#add-kit").style("display", "block");
+            d3.select("#alert-message").style("display", "none");
+        } else if (comparisonParameters.action === "alert") {
+            d3.select("#comments-list-container").style("display", "none");
+            d3.select("#add-kit").style("display", "none");
+            d3.select("#alert-message").style("display", "block");
+        } else {
+            d3.select("#comments-list-container").style("display", "none");
+            d3.select("#add-kit").style("display", "none");
+            d3.select("#alert-message").style("display", "none");
+        }
     });
 }
 
@@ -238,7 +259,9 @@ function startPeriodicCheck() {
         button.classed("btn-outline-success", false);
         button.classed("btn-outline-danger", true);
     } else {
-        console.log("Não há ponto de divergência selecionado");
+        const mensagem = "Não há ponto de divergência selecionado";
+        console.log(mensagem);
+        alert(mensagem);
     }
 }
 
@@ -350,6 +373,7 @@ async function checkCommentEngagementByContent(projectId, divPointId) {
 
         if (isCondicaoDeDisparo) {
             if (comparisonParameters.action === "alert") {
+                triggerAlert();
                 alert("Condição de disparo atingida");
             } else if (comparisonParameters.action === "comment") {
                 console.log("Comentando as questões");
@@ -360,6 +384,11 @@ async function checkCommentEngagementByContent(projectId, divPointId) {
             console.log("Condição de disparo não atingida");
         }
     }
+}
+
+function triggerAlert() {
+    const alertMessage = d3.select("#alert-text").node().value;
+    alert(`[Condição de disparo atingida] ${(alertMessage || "")}`);
 }
 
 async function checkParentComments(divPointId) {
@@ -379,7 +408,7 @@ async function checkParentComments(divPointId) {
 }
 
 function randomComment() {
-    let comments = d3.select("#questions-list").node().value.split("\n");
+    let comments = d3.select("#comments-list").node().value.split("\n");
     console.log(comments);
     let randomIndex = Math.floor(Math.random() * comments.length);
     return comments[randomIndex];
