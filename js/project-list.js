@@ -1,4 +1,5 @@
 import { getAllProjects, getProjectById, getAllDivergencePointsByMapId, getCommentsGroupedByQuestionReport, createParentComment, createReplyComment, getUser, getSummaryProjectsByUser, getCommentEngagementByContent, createDivergencePoint } from "./strateegia-api.js";
+import { initializeNewKitTextArea } from "./text2kit.js";
 
 let users = [];
 const accessToken = localStorage.getItem("strateegiaAccessToken");
@@ -11,9 +12,31 @@ const comparisonParameters = {
     "variable": "people_active_count",
     "condition": "maior",
     "comparisonValue": "0",
-    "action": "comment",
+    "action": "none",
     "variableValue": "0"
 };
+
+const actionMap = new Map();
+actionMap.set("none", () => {
+    console.log("## none");
+});
+actionMap.set("comment", () => {
+    console.log("## comment");
+});
+actionMap.set("alert", () => {
+    console.log("## alert");
+    const alertMessage = d3.select("#alert-text").node().value;
+    alert(`[Condição de disparo atingida] ${(alertMessage || "")}`);
+});
+actionMap.set("addFromNewKit", () => {
+    console.log("## addFromNewKit");
+    const kitTextArea = d3.select("#new-kit-text").node().value;
+    const positionX = d3.select("#add-new-kit-position-x").node().value;
+    const positionY = d3.select("#add-new-kit-position-y").node().value;
+});
+actionMap.set("addFromKitList", () => {
+    console.log("## addFromKitList");
+});
 
 export async function initializeProjectList() {
     // const labs = await getAllProjects(accessToken);
@@ -126,9 +149,13 @@ async function updateDivPointList(selectedMap) {
 
             let initialSelectedDivPoint = map.content[0].id;
             setSelectedDivPoint(initialSelectedDivPoint);
+            d3.select("#only-if-has-div-points").style("display", "block");
+            d3.select("#only-if-not-have-div-points").style("display", "none");
         } else {
             console.log("Não há pontos de divergência associados ao mapa selecionado");
             localStorage.setItem("selectedDivPoint", null);
+            d3.select("#only-if-has-div-points").style("display", "none");
+            d3.select("#only-if-not-have-div-points").style("display", "block");
         }
     });
 }
@@ -215,12 +242,14 @@ function initializeOptions() {
     let actions = [
         { action: "-----", value: "none" },
         { action: "fazer comentário a partir da lista abaixo", value: "comment" },
-        { action: "adicionar o kit abaixo na posição X, Y", value: "addKit" },
+        { action: "criar o kit abaixo e adicioná-lo na posição X, Y", value: "addFromNewKit" },
+        { action: "adicionar kit da lista abaixo na posição X, Y", value: "addFromKitList" },
         { action: "lançar um alerta na tela", value: "alert" },
     ];
-    d3.select("#comments-list-container").style("display", "none");
-    d3.select("#add-kit").style("display", "none");
-    d3.select("#alert-message").style("display", "none");
+    d3.select("#comment-container").style("display", "none");
+    d3.select("#add-from-new-kit-container").style("display", "none");
+    d3.select("#add-from-kit-list-container").style("display", "none");
+    d3.select("#alert-container").style("display", "none");
     const acoes = d3.select("#acoes");
     actions.forEach(function (action) {
         acoes.append("option").attr("value", action.value).text(action.action).classed("dropdown-item", true);
@@ -229,23 +258,35 @@ function initializeOptions() {
         comparisonParameters.action = d3.select("#acoes").property("value");
         console.log(comparisonParameters);
         if (comparisonParameters.action === "comment") {
-            d3.select("#comments-list-container").style("display", "block");
-            d3.select("#add-kit").style("display", "none");
-            d3.select("#alert-message").style("display", "none");
-        } else if (comparisonParameters.action === "addKit") {
-            d3.select("#comments-list-container").style("display", "none");
-            d3.select("#add-kit").style("display", "block");
-            d3.select("#alert-message").style("display", "none");
+            d3.select("#comment-container").style("display", "block");
+            d3.select("#add-from-new-kit-container").style("display", "none");
+            d3.select("#add-from-kit-list-container").style("display", "none");
+            d3.select("#alert-container").style("display", "none");
+        } else if (comparisonParameters.action === "addFromNewKit") {
+            d3.select("#comment-container").style("display", "none");
+            d3.select("#add-from-new-kit-container").style("display", "block");
+            d3.select("#add-from-kit-list-container").style("display", "none");
+            d3.select("#alert-container").style("display", "none");
+        } else if (comparisonParameters.action === "addFromKitList") {
+            d3.select("#comment-container").style("display", "none");
+            d3.select("#add-from-new-kit-container").style("display", "none");
+            d3.select("#add-from-kit-list-container").style("display", "block");
+            d3.select("#alert-container").style("display", "none");
         } else if (comparisonParameters.action === "alert") {
-            d3.select("#comments-list-container").style("display", "none");
-            d3.select("#add-kit").style("display", "none");
-            d3.select("#alert-message").style("display", "block");
+            d3.select("#comment-container").style("display", "none");
+            d3.select("#add-from-new-kit-container").style("display", "none");
+            d3.select("#add-from-kit-list-container").style("display", "none");
+            d3.select("#alert-container").style("display", "block");
         } else {
-            d3.select("#comments-list-container").style("display", "none");
-            d3.select("#add-kit").style("display", "none");
-            d3.select("#alert-message").style("display", "none");
+            d3.select("#comment-container").style("display", "none");
+            d3.select("#add-from-new-kit-container").style("display", "none");
+            d3.select("#add-from-kit-list-container").style("display", "none");
+            d3.select("#alert-container").style("display", "none");
         }
     });
+
+    //=======================
+    initializeNewKitTextArea("new-kit-text");
 }
 
 function startPeriodicCheck() {
@@ -372,23 +413,19 @@ async function checkCommentEngagementByContent(projectId, divPointId) {
         }
 
         if (isCondicaoDeDisparo) {
-            if (comparisonParameters.action === "alert") {
-                triggerAlert();
-                alert("Condição de disparo atingida");
-            } else if (comparisonParameters.action === "comment") {
-                console.log("Comentando as questões");
-            } else if (comparisonParameters.action === "addKit") {
-                console.log("Criando ponto de divergência");
-            }
+            // if (comparisonParameters.action === "alert") {
+            //     triggerAlert();
+            //     alert("Condição de disparo atingida");
+            // } else if (comparisonParameters.action === "comment") {
+            //     console.log("Comentando as questões");
+            // } else if (comparisonParameters.action === "addFromNewKit") {
+            //     console.log("Criando ponto de divergência");
+            // }
+            actionMap.get(comparisonParameters.action)();
         } else {
             console.log("Condição de disparo não atingida");
         }
     }
-}
-
-function triggerAlert() {
-    const alertMessage = d3.select("#alert-text").node().value;
-    alert(`[Condição de disparo atingida] ${(alertMessage || "")}`);
 }
 
 async function checkParentComments(divPointId) {

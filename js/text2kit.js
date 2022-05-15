@@ -1,4 +1,4 @@
-export function initializeTextArea() {
+export function initializeNewKitTextArea(elementId) {
   let kitTemplate = [
     "TÍTULO: digite aqui o título do seu kit",
     "COR: digite a cor do seu kit a partir dessa lista: [YELLOW, PINK, MAGENTA, BLUE, PURPLE, ORANGE, TEAL]",
@@ -10,7 +10,7 @@ export function initializeTextArea() {
     "REF: [digite aqui a descrição da 2ª referência](digite o link para a 2ª referência)",
     "REF: [digite aqui a descrição da 3ª referência](digite o link para a 3ª referência)",
   ];
-  const textarea = d3.select("#main-textarea");
+  const textarea = d3.select(`#${elementId}`);
   textarea.text(kitTemplate.join("\n"));
 }
 
