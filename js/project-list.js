@@ -59,35 +59,6 @@ actionMap.set("addFromKitList", async () => {
 });
 
 export async function initializeProjectList() {
-    // const labs = await getAllProjects(accessToken);
-    // console.log("getAllProjects()");
-    // console.log(labs);
-    // const user = await getUser(accessToken);
-    // localStorage.setItem("userId", user.id);
-    // let listProjects = [];
-    // for (let i = 0; i < labs.length; i++) {
-    //     let currentLab = labs[i];
-    //     if (currentLab.lab.name == null) {
-    //         currentLab.lab.name = "Personal";
-    //     }
-    //     for (let index = 0; index < currentLab.projects.length; index++) {
-    //         const project = currentLab.projects[index];
-    //         const newProject = {
-    //             "id": project.id,
-    //             "title": project.title,
-    //             "lab_id": currentLab.lab.id,
-    //             "lab_title": currentLab.lab.name
-    //         };
-    //         const projectMoreInfo = await getProjectById(accessToken, project.id);
-    //         const foundUser = projectMoreInfo.users.find(_user => _user.id == user.id);
-    //         if (foundUser !== undefined) {
-    //             if (foundUser.project_roles.includes("ADMIN") || foundUser.project_roles.includes("MENTOR")) {
-    //                 listProjects.push(newProject);
-    //             }
-    //         }
-    //     }
-    // }
-
     const projectsSummary = await getSummaryProjectsByUser(accessToken);
     console.log("getSummaryProjectsByUser()");
     console.log(projectsSummary);
@@ -176,15 +147,19 @@ async function updateDivPointList(selectedMap) {
             d3.select("#only-if-not-have-div-points").style("display", "none");
         } else {
             console.log("Não há pontos de divergência associados ao mapa selecionado");
-            let toast = document.getElementById("live-toast");
-            d3.select("#toast-message").text("Não há pontos de divergência associados ao mapa selecionado");
-            toast = new bootstrap.Toast(toast);
-            toast.show();
+            toastAlert("Não há pontos de divergência associados ao mapa selecionado");
             localStorage.setItem("selectedDivPoint", null);
             d3.select("#only-if-has-div-points").style("display", "none");
             d3.select("#only-if-not-have-div-points").style("display", "block");
         }
     });
+}
+
+function toastAlert(message) {
+    let toast = document.getElementById("live-toast");
+    d3.select("#toast-message").text(message);
+    toast = new bootstrap.Toast(toast);
+    toast.show();
 }
 
 async function setSelectedDivPoint(divPointId) {
@@ -195,6 +170,7 @@ async function setSelectedDivPoint(divPointId) {
         console.log(questions);
     } else {
         console.log("Não há respostas associadas ao ponto de divergência selecionado");
+        toastAlert("Não há respostas associadas ao ponto de divergência selecionado");
     }
     // intervalCheck = setInterval(() => {periodicCheck(divPointId)}, 5000);
 }
