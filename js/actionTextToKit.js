@@ -14,7 +14,7 @@ export function initializeNewKitTextArea(elementId) {
   textarea.text(kitTemplate.join("\n"));
 }
 
-export async function prepareKitForCreation(kitToBeCreated) {
+export async function sendKitForCreation(accessToken, kitToBeCreated) {
   const responseFromCreateTool = await createTool(accessToken,
     kitToBeCreated.title,
     kitToBeCreated.color,
@@ -38,8 +38,8 @@ export async function prepareKitForCreation(kitToBeCreated) {
   statusOutput.append("pre").style("white-space", "pre-wrap").text(JSON.stringify(responseFromCreateTool, null, 2));
 }
 
-export function parseTextArea() {
-  let lines = d3.select("#main-textarea").node().value.split("\n");
+export function parseTextArea(textFromTextArea) {
+  let lines = textFromTextArea.split("\n");
   const kit = {};
   kit.title = lines[0].replace("TÍTULO: ", "");
   kit.color = lines[1].replace("COR: ", "");
@@ -79,6 +79,17 @@ function extractTextBetweenBrackets(text) {
 //function that extracts the text between parentheses
 function extractTextBetweenParentheses(text) {
   const regex = /\((.*?)\)/g;
+  let match;
+  let result = [];
+  while ((match = regex.exec(text)) !== null) {
+    result.push(match[1]);
+  }
+  return result;
+}
+
+//function that extracts the text between parametric character
+function extractTextBetweenParametricCharacter(text, parametricCharacter) {
+  const regex = new RegExp(`${parametricCharacter}(.*?)${parametricCharacter}`, "g");
   let match;
   let result = [];
   while ((match = regex.exec(text)) !== null) {

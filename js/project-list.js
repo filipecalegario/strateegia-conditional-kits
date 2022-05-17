@@ -1,5 +1,5 @@
-import { getAllProjects, getProjectById, getAllDivergencePointsByMapId, getCommentsGroupedByQuestionReport, createParentComment, createReplyComment, getUser, getSummaryProjectsByUser, getCommentEngagementByContent, createDivergencePoint } from "./strateegia-api.js";
-import { initializeNewKitTextArea } from "./text2kit.js";
+import { getAllMyTools, getAllProjects, getProjectById, getAllDivergencePointsByMapId, getCommentsGroupedByQuestionReport, createParentComment, createReplyComment, getUser, getSummaryProjectsByUser, getCommentEngagementByContent, createDivergencePoint } from "https://unpkg.com/strateegia-api/strateegia-api.js";
+import { initializeNewKitTextArea, parseTextArea } from "./actionTextToKit.js";
 
 let users = [];
 const accessToken = localStorage.getItem("strateegiaAccessToken");
@@ -33,9 +33,15 @@ actionMap.set("addFromNewKit", () => {
     const kitTextArea = d3.select("#new-kit-text").node().value;
     const positionX = d3.select("#add-new-kit-position-x").node().value;
     const positionY = d3.select("#add-new-kit-position-y").node().value;
+    const kitToBeCreated = parseTextArea(kitTextArea);
+    console.log("kitToBeCreated %o", kitToBeCreated);
 });
 actionMap.set("addFromKitList", () => {
     console.log("## addFromKitList");
+    const selectedKit = d3.select("#kit-list").property("value");
+    const positionX = d3.select("#add-existing-kit-position-x").node().value;
+    const positionY = d3.select("#add-existing-kit-position-y").node().value;
+    console.log(selectedKit);
 });
 
 export async function initializeProjectList() {
@@ -287,6 +293,20 @@ function initializeOptions() {
 
     //=======================
     initializeNewKitTextArea("new-kit-text");
+    initializeListExistingKits();
+}
+
+async function initializeListExistingKits() {
+    const listExistingKits = d3.select("#kit-list");
+    listExistingKits.selectAll("option").remove();
+    const kits = await getAllMyTools(accessToken);
+    kits.content.forEach(function (kit) {
+        listExistingKits.append("option").attr("value", kit.id).text(kit.title).classed("dropdown-item", true);
+    });
+    listExistingKits.on("change", () => {
+        comparisonParameters.kitId = d3.select("#kit-list").property("value");
+        console.log(comparisonParameters);
+    });
 }
 
 function startPeriodicCheck() {
@@ -323,14 +343,18 @@ async function periodicCheck(divPointId) {
     checkCommentEngagementByContent(projectId, divPointId);
 }
 
+function currentTimeFormatted() {
+    let currentTime = new Date();
+    return d3.timeFormat("%d/%m/%Y %H:%M:%S")(currentTime);
+}
+
 function statusUpdate() {
     let statusOutput = d3.select("#periodic-check-status");
-    statusOutput.classed("alert alert-secondary", true);
-    let currentTime = new Date();
-    let currentTimeFormatted = d3.timeFormat("%d/%m/%Y %H:%M:%S")(currentTime);
+    let statusDisplay = d3.select("#status-display");
+    statusDisplay.classed("alert alert-secondary", true);
     const parentCommentsCount = localStorage.getItem("parentCommentsCount");
     const potentialCount = localStorage.getItem("potentialCount");
-    statusOutput.text(`última checagem: ${currentTimeFormatted}`);
+    statusOutput.text(`última checagem: ${currentTimeFormatted()}`);
     // statusOutput.append("p").text(`contagem de respostas: ${parentCommentsCount}`);
     // statusOutput.append("p").text(`limite de disparo: 12`);
     // statusOutput.append("p").text(`disparou? ${isCondicaoDeDisparo}`);
@@ -421,7 +445,17 @@ async function checkCommentEngagementByContent(projectId, divPointId) {
             // } else if (comparisonParameters.action === "addFromNewKit") {
             //     console.log("Criando ponto de divergência");
             // }
-            actionMap.get(comparisonParameters.action)();
+            const triggeredActionLock = d3.select("#triggered-action-lock");
+
+            if (!triggeredActionLock.property("checked")) {
+                triggeredActionLock.property("checked", true);
+                const actionToTrigger = actionMap.get(comparisonParameters.action);
+                actionToTrigger();
+                d3.select("#triggered-action-status").text("último disparo: " + currentTimeFormatted());
+            } else {
+                console.log("Ação já foi disparada");
+            }
+
         } else {
             console.log("Condição de disparo não atingida");
         }

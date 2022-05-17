@@ -93,31 +93,37 @@
         <div class="progress-bar" role="progressbar" style="width: 25%" aria-valuenow="25" aria-valuemin="0"
           aria-valuemax="100"></div>
       </div> -->
-        <div class="row mb-3">
+
+        <div class="row mb-3 form-check form-switch">
+          <input class="form-check-input" type="checkbox" role="switch" id="triggered-action-lock">
+          <label class="form-check-label" for="triggered-action-lock">trava de disparo de ação</label>
+        </div>
+        <div class="row mb-3" id="status-display">
           <p class="col" id="periodic-check-status"></p>
+          <p class="col" id="triggered-action-status"></p>
+        </div>
+
+        <div id="only-if-not-have-div-points">
+          jornada sem pontos de divergência
         </div>
       </div>
-      <div id="only-if-not-have-div-points">
-        jornada sem pontos de divergência
-      </div>
+
+
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0"
+      crossorigin="anonymous"></script>
 
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0"
-    crossorigin="anonymous"></script>
-
-  <script type="module" src="./js/main.js"></script>
-  <script src="https://d3js.org/d3.v6.min.js"></script>
-  <script type="module" src="./js/strateegia-api.js"></script>
-  <script type="module" src="./js/project-list.js"></script>
-  <script type="module" src="./js/text2kit.js"></script>
-  <script type="module" src="https://cdn.jsdelivr.net/npm/jsonpath-plus@6.0.1/src/jsonpath.js"></script>
-  <script type="module" src="./js/utils/d3functions.js"></script>
-  <script src="./js/utils/jsonpath-browser-umd.cjs"></script>
-  <script src="./js/utils/utils.js"></script>
+    <script type="module" src="./js/main.js"></script>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script type="module" src="./js/strateegia-api.js"></script>
+    <script type="module" src="./js/project-list.js"></script>
+    <!-- <script type="module" src="./js/text2kit.js"></script> -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/jsonpath-plus@6.0.1/src/jsonpath.js"></script>
+    <script type="module" src="./js/utils/d3functions.js"></script>
+    <script src="./js/utils/jsonpath-browser-umd.cjs"></script>
+    <script src="./js/utils/utils.js"></script>
 
 </body>
 
