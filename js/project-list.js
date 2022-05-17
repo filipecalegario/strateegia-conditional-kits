@@ -1,5 +1,6 @@
-import { getAllMyTools, getAllProjects, getProjectById, getAllDivergencePointsByMapId, getCommentsGroupedByQuestionReport, createParentComment, createReplyComment, getUser, getSummaryProjectsByUser, getCommentEngagementByContent, createDivergencePoint } from "https://unpkg.com/strateegia-api/strateegia-api.js";
+import { createTool, getAllMyTools, getAllProjects, getProjectById, getAllDivergencePointsByMapId, getCommentsGroupedByQuestionReport, createParentComment, createReplyComment, getUser, getSummaryProjectsByUser, getCommentEngagementByContent, createDivergencePoint } from "https://unpkg.com/strateegia-api/strateegia-api.js";
 import { initializeNewKitTextArea, parseTextArea } from "./actionTextToKit.js";
+import { initializeCommentTextArea } from "./actionComment.js";
 
 let users = [];
 const accessToken = localStorage.getItem("strateegiaAccessToken");
@@ -20,7 +21,7 @@ const actionMap = new Map();
 actionMap.set("none", () => {
     console.log("## none");
 });
-actionMap.set("comment", () => {
+actionMap.set("comment", async () => {
     console.log("## comment");
 });
 actionMap.set("alert", () => {
@@ -28,20 +29,33 @@ actionMap.set("alert", () => {
     const alertMessage = d3.select("#alert-text").node().value;
     alert(`[Condição de disparo atingida] ${(alertMessage || "")}`);
 });
-actionMap.set("addFromNewKit", () => {
+actionMap.set("addFromNewKit", async () => {
     console.log("## addFromNewKit");
     const kitTextArea = d3.select("#new-kit-text").node().value;
     const positionX = d3.select("#add-new-kit-position-x").node().value;
     const positionY = d3.select("#add-new-kit-position-y").node().value;
     const kitToBeCreated = parseTextArea(kitTextArea);
     console.log("kitToBeCreated %o", kitToBeCreated);
+    const responseFromCreateTool = await createTool(accessToken,
+        kitToBeCreated.title,
+        kitToBeCreated.color,
+        kitToBeCreated.description,
+        kitToBeCreated.questions,
+        kitToBeCreated.references);
+    responseStatus(responseFromCreateTool, "#response-status2");
+    const newKitId = responseFromCreateTool.id;
+    const mapId = localStorage.getItem("selectedMap");
+    const responseFromCreateDivergencePoint = await createDivergencePoint(accessToken, mapId, newKitId, positionY, positionX);
+    responseStatus(responseFromCreateDivergencePoint, "#response-status");
 });
-actionMap.set("addFromKitList", () => {
+actionMap.set("addFromKitList", async () => {
     console.log("## addFromKitList");
     const selectedKit = d3.select("#kit-list").property("value");
     const positionX = d3.select("#add-existing-kit-position-x").node().value;
     const positionY = d3.select("#add-existing-kit-position-y").node().value;
-    console.log(selectedKit);
+    const mapId = localStorage.getItem("selectedMap");
+    const responseFromCreateDivergencePoint = await createDivergencePoint(accessToken, mapId, selectedKit, positionY, positionX);
+    responseStatus(responseFromCreateDivergencePoint, "#response-status");
 });
 
 export async function initializeProjectList() {
@@ -100,6 +114,7 @@ export async function initializeProjectList() {
     });
 
     localStorage.setItem("selectedProject", listProjects[0].id);
+
     updateMapList(listProjects[0].id);
 
     initializePeriodicCheckButtonControls();
@@ -125,6 +140,7 @@ async function updateMapList(selectedProject) {
     options.on("change", () => {
         let selectedMap = d3.select("#maps-list").property('value');
         localStorage.setItem("selectedMap", selectedMap);
+        d3.select("#project-link").attr("href", `https://app.strateegia.digital/journey/${selectedProject}/map/${selectedMap}`);
         console.log(selectedMap);
         updateDivPointList(selectedMap);
         stopPeriodicCheck();
@@ -133,6 +149,7 @@ async function updateMapList(selectedProject) {
 
     const mapId = project.maps[0].id;
     localStorage.setItem("selectedMap", mapId);
+    d3.select("#project-link").attr("href", `https://app.strateegia.digital/journey/${selectedProject}/map/${mapId}`);
     updateDivPointList(mapId);
 }
 
@@ -159,6 +176,10 @@ async function updateDivPointList(selectedMap) {
             d3.select("#only-if-not-have-div-points").style("display", "none");
         } else {
             console.log("Não há pontos de divergência associados ao mapa selecionado");
+            let toast = document.getElementById("live-toast");
+            d3.select("#toast-message").text("Não há pontos de divergência associados ao mapa selecionado");
+            toast = new bootstrap.Toast(toast);
+            toast.show();
             localStorage.setItem("selectedDivPoint", null);
             d3.select("#only-if-has-div-points").style("display", "none");
             d3.select("#only-if-not-have-div-points").style("display", "block");
@@ -293,7 +314,27 @@ function initializeOptions() {
 
     //=======================
     initializeNewKitTextArea("new-kit-text");
+    initializeCommentTextArea("comment-text");
     initializeListExistingKits();
+}
+
+function responseStatus(response, htmlElementId) {
+    console.log("responseStatus %o", response);
+    let statusOutput = d3.select(htmlElementId);
+    let outputMessage = "";
+    if (response.status === undefined) {
+        statusOutput.classed("alert alert-danger", false);
+        statusOutput.classed("alert alert-success", true);
+        outputMessage = "Sucesso!";
+    } else {
+        statusOutput.classed("alert alert-success", false);
+        statusOutput.classed("alert alert-danger", true);
+        outputMessage = "Erro!";
+    }
+    // define the text with JSON format and the status
+    outputMessage = outputMessage + " " + currentTimeFormatted();
+    statusOutput.text(outputMessage);
+    statusOutput.append("pre").style("white-space", "pre-wrap").text(JSON.stringify(response, null, 2));
 }
 
 async function initializeListExistingKits() {
@@ -305,7 +346,7 @@ async function initializeListExistingKits() {
     });
     listExistingKits.on("change", () => {
         comparisonParameters.kitId = d3.select("#kit-list").property("value");
-        console.log(comparisonParameters);
+        // console.log(comparisonParameters);
     });
 }
 

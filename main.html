@@ -21,7 +21,8 @@
     <div class="container mt-2">
       <div class="row input-group mb-2">
         <span class="col-3 input-group-text">jornada</span>
-        <select class="col-10 form-select" aria-label="Default select example" id="projects-list"></select>
+        <select class="col-6 form-select" aria-label="Default select example" id="projects-list"></select>
+        <span class="col-3 input-group-text"><a target="_blank" id="project-link">link para jornada<a></span>
       </div>
       <div class="row input-group mb-2">
         <span class="col-3 input-group-text">mapas</span>
@@ -51,7 +52,7 @@
         </div>
         <div id="comment-container">
           <div class="row input-group mb-2">
-            <textarea class="form-control" id="comments-list" rows="10"></textarea>
+            <textarea class="form-control" id="comment-text" rows="10"></textarea>
           </div>
         </div>
         <div id="add-from-new-kit-container">
@@ -102,13 +103,28 @@
           <p class="col" id="periodic-check-status"></p>
           <p class="col" id="triggered-action-status"></p>
         </div>
+        <div class="row mb-3">
+          <p class="col" id="response-status"></p>
+          <p class="col" id="response-status2"></p>
+        </div>
 
         <div id="only-if-not-have-div-points">
           jornada sem pontos de divergência
         </div>
       </div>
+    </div>
 
-
+    <div class="position-fixed bottom-0 start-0 p-3" style="z-index: 11">
+      <div id="live-toast" class="toast align-items-center text-white bg-primary border-0" role="alert"
+        aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+          <div id="toast-message" class="toast-body">
+            Message
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+            aria-label="Close"></button>
+        </div>
+      </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js"

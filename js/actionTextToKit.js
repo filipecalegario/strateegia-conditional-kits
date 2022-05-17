@@ -21,21 +21,21 @@ export async function sendKitForCreation(accessToken, kitToBeCreated) {
     kitToBeCreated.description,
     kitToBeCreated.questions,
     kitToBeCreated.references);
-  console.log(responseFromCreateTool);
-  let statusOutput = d3.select("#response-status");
-  let outputMessage = "";
-  if (responseFromCreateTool.status === undefined) {
-    statusOutput.classed("alert alert-danger", false);
-    statusOutput.classed("alert alert-success", true);
-    outputMessage = "Kit criado com sucesso!";
-  } else {
-    statusOutput.classed("alert alert-success", false);
-    statusOutput.classed("alert alert-danger", true);
-    outputMessage = "Erro ao criar o kit!";
-  }
-  // define the text with JSON format and the status
-  statusOutput.text(outputMessage);
-  statusOutput.append("pre").style("white-space", "pre-wrap").text(JSON.stringify(responseFromCreateTool, null, 2));
+  // console.log(responseFromCreateTool);
+  // let statusOutput = d3.select("#response-status");
+  // let outputMessage = "";
+  // if (responseFromCreateTool.status === undefined) {
+  //   statusOutput.classed("alert alert-danger", false);
+  //   statusOutput.classed("alert alert-success", true);
+  //   outputMessage = "Kit criado com sucesso!";
+  // } else {
+  //   statusOutput.classed("alert alert-success", false);
+  //   statusOutput.classed("alert alert-danger", true);
+  //   outputMessage = "Erro ao criar o kit!";
+  // }
+  // // define the text with JSON format and the status
+  // statusOutput.text(outputMessage);
+  // statusOutput.append("pre").style("white-space", "pre-wrap").text(JSON.stringify(responseFromCreateTool, null, 2));
 }
 
 export function parseTextArea(textFromTextArea) {
