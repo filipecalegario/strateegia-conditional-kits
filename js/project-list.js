@@ -23,6 +23,24 @@ actionMap.set("none", () => {
 });
 actionMap.set("comment", async () => {
     console.log("## comment");
+    const commentsText = d3.select("#comment-text").node().value.split("\n");
+    const divPointId = localStorage.getItem("selectedDivPoint");
+    const questionReport = await getCommentsGroupedByQuestionReport(accessToken, divPointId);
+    let response;
+    questionReport.forEach(question => {
+        const questionId = question.id;
+        if (question.comments.length > 0) {
+            question.comments.forEach(comment => {
+                if (comment.reply_count === 0) {
+                    const randomIndex = Math.floor(Math.random() * commentsText.length);
+                    const commentText = commentsText[randomIndex];
+                    console.log(`${comment.id}: ninguém fez comentários para essa resposta`);
+                    response = createReplyComment(accessToken, comment.id, commentText);
+                }
+            });
+        }
+    });
+    responseStatus(response, "#response-status");
 });
 actionMap.set("alert", () => {
     console.log("## alert");
@@ -406,9 +424,10 @@ function statusUpdate() {
 
 async function checkCommentEngagementByContent(projectId, divPointId) {
     const listEngagementByDivPoint = await getCommentEngagementByContent(accessToken, projectId);
+    console.log("listEngagementByDivPoint %o", listEngagementByDivPoint);
     const engagementDivPoint = listEngagementByDivPoint.filter(divPoint => divPoint.id === divPointId)[0];
     if (engagementDivPoint !== undefined) {
-        console.log(engagementDivPoint);
+        console.log("engagementDivPoint %o", engagementDivPoint);
         const variableFromAPI = engagementDivPoint[comparisonParameters.variable];
         comparisonParameters.variableValue = variableFromAPI;
         d3.select("#valor-variavel").text(variableFromAPI);
